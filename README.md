@@ -16,3 +16,6 @@
 2. poetry 2.0.0
 3. black 25.1.0
 -----
+
+#### develop 실행
+auth-v1 : poetry run python -m api-v1.auth
