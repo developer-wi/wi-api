@@ -1,0 +1,29 @@
+[project]
+name = "wi-api"
+version = "0.1.0"
+description = ""
+authors = [
+    { name = "Wonik Kim", email = "developer.wi.76@gmail.com" }
+]
+readme = "README.md"
+requires-python = ">=3.13"
+
+[tool.poetry]
+package-mode = false
+
+[tool.poetry.group.auth-v1.dependencies]
+auth-v1 = { path = "api-v1/auth", develop = true }
+[tool.poetry.group.auth-v1]
+optional = true
+
+[tool.poetry.group.blog-v1.dependencies]
+blog-v1 = { path = "api-v1/blog", develop = true }
+[tool.poetry.group.blog-v1]
+optional = true
+
+[tool.poetry.dependencies]
+black = "^25.1.0"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
