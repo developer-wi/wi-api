@@ -50,7 +50,7 @@ class UserService:
         token = None
         try:
             if verify_password(user_password, user.key):
-                # Todo : Create Token
+
                 token = self.create_token(user.id)
                 print(token)
             else:
