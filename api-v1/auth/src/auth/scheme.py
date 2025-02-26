@@ -5,9 +5,16 @@ class UserBase(BaseModel):
     email: str
 
 
-class UserCreate(UserBase):
-    name: str
+class UserVerify(UserBase):
     password: str
+
+
+class UserCreate(UserVerify):
+    name: str
+
+
+class UserNewPassword(UserVerify):
+    new_password: str
 
 
 class User(UserBase):
