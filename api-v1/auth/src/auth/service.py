@@ -1,88 +1,80 @@
-from typing import final
-from warnings import catch_warnings
-
-import jwt
 import uuid
 from fastapi import HTTPException
-from passlib.exc import UnknownHashError
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
+import concurrent.futures
 
-from auth.model import User
 from auth.repo import RepoUser
 from auth.scheme import UserCreate
-from auth.crypt.util import get_password_hash, verify_password
+from auth.crypt.util import get_password_hash, verify_password, create_token
 
 
 class UserService:
+    thread_pool: concurrent.futures.ThreadPoolExecutor = (
+        concurrent.futures.ThreadPoolExecutor(max_workers=5)
+    )
+
     def __init__(self, db: AsyncSession):
         self._repo = RepoUser(db)
 
     async def get_user(self, user_id: int):
-        """Retrieves a user by ID."""
+        """ID로 사용자 가져오기."""
         user = await self._repo.find_by_id(user_id)
-        if user is None:
-            raise HTTPException(status_code=404, detail="User not found")
         return user
 
     async def get_user_by_email(self, user_email: str):
-        """Retrieves a user by email."""
+        """이메일로 사용자 가져오기."""
         user = await self._repo.find_by_email(user_email)
-        if user is None:
-            raise HTTPException(status_code=404, detail="User not found")
         return user
 
     async def create_user(self, user: UserCreate):
-        """Creates a new user."""
-        hashed_password = get_password_hash(user.password)
-        generated_uuid = uuid.uuid1()
-        print(hashed_password)
+        """새로운 사용자 생성."""
+        hashed_password = await get_password_hash(user.password, self.thread_pool)
+        generated_uuid = str(uuid.uuid1())
         return await self._repo.create(
             name=user.name,
-            uuid=str(generated_uuid),
+            uuid=generated_uuid,
             email=user.email,
             key=hashed_password,
         )
 
     async def verify_user(self, email: str, user_password: str):
-        """Verifies user credentials and generates a token."""
+        """사용자 인증 및 토큰 생성."""
         user = await self._repo.find_by_email(email)
-        if user is None:
-            raise HTTPException(status_code=404, detail="User not found")
 
-        try:
-            if not verify_password(user_password, user.key):
-                raise HTTPException(status_code=409, detail="Wrong Password")
+        is_verified = await verify_password(user_password, user.key, self.thread_pool)
+        if not is_verified:
+            raise HTTPException(status_code=409, detail="Wrong Password")
 
-            token = self.create_token(user.id)
-            print(token)
-            return {"token": token}
-
-        except UnknownHashError as e:
-            raise HTTPException(status_code=409, detail=str(e))
+        token = await create_token(user.id, self.thread_pool)
+        return {"token": token}
 
     async def change_password(self, email: str, password: str, new_password: str):
-        """Changes a user's password."""
-        user = await self._repo.find_by_email(email)
-        if user is None:
-            raise HTTPException(status_code=404, detail="User not found")
-
+        """사용자 비밀번호 변경."""
         try:
-            if not verify_password(password, user.key):
+            user = await self._repo.find_by_email(email)
+
+            is_verified = await verify_password(password, user.key, self.thread_pool)
+            if not is_verified:
                 raise HTTPException(
                     status_code=409, detail="Password verification failed"
                 )
 
-            new_key = get_password_hash(new_password)
+            new_key = await get_password_hash(new_password, self.thread_pool)
             await self._repo.update_key_by_email(email=email, new_key=new_key)
-            token = self.create_token(user.id)
-            return True
+
+            token = await create_token(user.id, self.thread_pool)
+            return token
 
         except Exception as e:
-            raise HTTPException(
-                status_code=409, detail="Unknown error during password change"
-            )
+            raise HTTPException(status_code=500, detail=str(e))
 
-    def create_token(self, user_id: int) -> str:
-        """Creates a JWT token for the user."""
-        return jwt.encode({"user_id": user_id}, "gPdudtkgkd", algorithm="HS256")
+    # async def create_token(self, user_id: int) -> str:
+    #     """사용자를 위한 JWT 토큰 생성."""
+    #     loop = asyncio.get_running_loop()
+    #     return await loop.run_in_executor(self.thread_pool, self._create_token, user_id)
+    #
+    # def _create_token(self, user_id: int):
+    #     return jwt.encode({"user_id": user_id}, "gPdudtkgkd", algorithm="HS256")
+
+    def shutdown(self):
+        self.thread_pool.shutdown(wait=True)

@@ -13,6 +13,7 @@ package-mode = false
 
 [tool.poetry.group.auth-v1.dependencies]
 auth-v1 = { path = "api-v1/auth", develop = true }
+
 [tool.poetry.group.auth-v1]
 optional = true
 
@@ -24,6 +25,7 @@ optional = true
 [tool.poetry.dependencies]
 black = "^25.1.0"
 
+
 [build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
+requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"

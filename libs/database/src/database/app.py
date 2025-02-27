@@ -40,10 +40,10 @@ engines = {
 
 # async sessionmaker for both master and slave
 async_master_session = async_sessionmaker(
-    bind=engines["master"], autocommit=False, autoflush=False
+    bind=engines["master"], autocommit=False, autoflush=False, expire_on_commit=False
 )
 async_slave_session = async_sessionmaker(
-    bind=engines["slave"], autocommit=False, autoflush=False
+    bind=engines["slave"], autocommit=False, autoflush=False, expire_on_commit=False
 )
 
 
