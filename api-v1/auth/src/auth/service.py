@@ -20,74 +20,74 @@ class UserService:
         self._repo = RepoUser(db)
 
     def get_user(self, user_id: int):
-        # user = self.__db.query(User).filter(User.id == user_id).first()
+        """Retrieves a user by ID."""
         user = self._repo.find_by_id(user_id)
         if user is None:
             raise HTTPException(status_code=404, detail="User not found")
         return user
 
     def get_user_by_email(self, user_email: str):
-        # user = self.__db.query(User).filter(User.email == user_email).first()
+        """Retrieves a user by email."""
         user = self._repo.find_by_email(user_email)
         if user is None:
             raise HTTPException(status_code=404, detail="User not found")
         return user
 
     def create_user(self, user: UserCreate):
-        hashKey = get_password_hash(user.password)
-        gen_uuid = uuid.uuid3(uuid.NAMESPACE_DNS, "wonik.com")
-        print(hashKey)
+        """Creates a new user."""
+        hashed_password = get_password_hash(user.password)
+        generated_uuid = uuid.uuid3(uuid.NAMESPACE_DNS, "wonik.com")
+        print(hashed_password)
         return self._repo.create(
-            name=user.name, uuid=str(gen_uuid), email=user.email, key=hashKey
+            name=user.name,
+            uuid=str(generated_uuid),
+            email=user.email,
+            key=hashed_password,
         )
 
-    def verify_user(self, email, user_password):
-        # user = self.__db.query(User).filter(User.email == email).first()
+    def verify_user(self, email: str, user_password: str):
+        """Verifies user credentials and generates a token."""
         user = self._repo.find_by_email(email)
         if user is None:
             raise HTTPException(status_code=404, detail="User not found")
 
-        token = None
         try:
-            if verify_password(user_password, user.key):
-
-                token = self.create_token(user.id)
-                print(token)
-            else:
+            if not verify_password(user_password, user.key):
                 raise HTTPException(status_code=409, detail="Wrong Password")
+
+            token = self.create_token(user.id)
+            print(token)
+            return {"token": token}
+
         except UnknownHashError as e:
-            err_msg = e.args[0]
-            raise HTTPException(status_code=409, detail=err_msg)
+            raise HTTPException(status_code=409, detail=str(e))
 
-        return {"token": token}
-
-    def change_password(self, email, password, new_password):
-        # user = self.__db.query(User).filter(User.email == email).first()
+    def change_password(self, email: str, password: str, new_password: str):
+        """Changes a user's password."""
         user = self._repo.find_by_email(email)
         if user is None:
             raise HTTPException(status_code=404, detail="User not found")
+
         try:
-            if verify_password(password, user.key):
-                new_key = get_password_hash(new_password)
-                self._repo.update_key_by_email(email=email, new_key=new_key)
-                token = self.create_token(user.id)
-                return True
-            else:
-                raise HTTPException(status_code=409, detail="password verify failed")
+            if not verify_password(password, user.key):
+                raise HTTPException(
+                    status_code=409, detail="Password verification failed"
+                )
+
+            new_key = get_password_hash(new_password)
+            self._repo.update_key_by_email(email=email, new_key=new_key)
+            token = self.create_token(user.id)
+            return True
+
         except IntegrityError as e:
             self.__db.rollback()
-            err_msg = e.args[0]
             raise HTTPException(
-                status_code=409,
-                detail="unknown error password change",
+                status_code=409, detail="Unknown error during password change"
             )
         except UnknownHashError as e:
             self.__db.rollback()
-            err_mag = e.args[0]
-            raise HTTPException(
-                status_code=409,
-                detail=err_mag,
-            )
+            raise HTTPException(status_code=409, detail=str(e))
 
-    def create_token(self, user_id) -> str:
+    def create_token(self, user_id: int) -> str:
+        """Creates a JWT token for the user."""
         return jwt.encode({"user_id": user_id}, "gPdudtkgkd", algorithm="HS256")
