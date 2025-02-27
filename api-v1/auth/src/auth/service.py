@@ -6,7 +6,7 @@ import uuid
 from fastapi import HTTPException
 from passlib.exc import UnknownHashError
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth.model import User
 from auth.repo import RepoUser
@@ -15,39 +15,38 @@ from auth.crypt.util import get_password_hash, verify_password
 
 
 class UserService:
-    def __init__(self, db: Session):
-        self.__db = db
+    def __init__(self, db: AsyncSession):
         self._repo = RepoUser(db)
 
-    def get_user(self, user_id: int):
+    async def get_user(self, user_id: int):
         """Retrieves a user by ID."""
-        user = self._repo.find_by_id(user_id)
+        user = await self._repo.find_by_id(user_id)
         if user is None:
             raise HTTPException(status_code=404, detail="User not found")
         return user
 
-    def get_user_by_email(self, user_email: str):
+    async def get_user_by_email(self, user_email: str):
         """Retrieves a user by email."""
-        user = self._repo.find_by_email(user_email)
+        user = await self._repo.find_by_email(user_email)
         if user is None:
             raise HTTPException(status_code=404, detail="User not found")
         return user
 
-    def create_user(self, user: UserCreate):
+    async def create_user(self, user: UserCreate):
         """Creates a new user."""
         hashed_password = get_password_hash(user.password)
-        generated_uuid = uuid.uuid3(uuid.NAMESPACE_DNS, "wonik.com")
+        generated_uuid = uuid.uuid1()
         print(hashed_password)
-        return self._repo.create(
+        return await self._repo.create(
             name=user.name,
             uuid=str(generated_uuid),
             email=user.email,
             key=hashed_password,
         )
 
-    def verify_user(self, email: str, user_password: str):
+    async def verify_user(self, email: str, user_password: str):
         """Verifies user credentials and generates a token."""
-        user = self._repo.find_by_email(email)
+        user = await self._repo.find_by_email(email)
         if user is None:
             raise HTTPException(status_code=404, detail="User not found")
 
@@ -62,9 +61,9 @@ class UserService:
         except UnknownHashError as e:
             raise HTTPException(status_code=409, detail=str(e))
 
-    def change_password(self, email: str, password: str, new_password: str):
+    async def change_password(self, email: str, password: str, new_password: str):
         """Changes a user's password."""
-        user = self._repo.find_by_email(email)
+        user = await self._repo.find_by_email(email)
         if user is None:
             raise HTTPException(status_code=404, detail="User not found")
 
@@ -75,18 +74,14 @@ class UserService:
                 )
 
             new_key = get_password_hash(new_password)
-            self._repo.update_key_by_email(email=email, new_key=new_key)
+            await self._repo.update_key_by_email(email=email, new_key=new_key)
             token = self.create_token(user.id)
             return True
 
-        except IntegrityError as e:
-            self.__db.rollback()
+        except Exception as e:
             raise HTTPException(
                 status_code=409, detail="Unknown error during password change"
             )
-        except UnknownHashError as e:
-            self.__db.rollback()
-            raise HTTPException(status_code=409, detail=str(e))
 
     def create_token(self, user_id: int) -> str:
         """Creates a JWT token for the user."""

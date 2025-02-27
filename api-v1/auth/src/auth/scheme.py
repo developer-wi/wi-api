@@ -20,6 +20,5 @@ class UserNewPassword(UserVerify):
 class User(UserBase):
     id: int
 
-
-class Config:
-    orm_mode = True
+    class Config:
+        from_attributes = True
