@@ -9,7 +9,7 @@ readme = "README.md"
 requires-python = ">=3.13"
 
 [tool.poetry]
-packages = [{ include = "auth", from = "src" }]
+packages = [{ include = "auth", from = "..." }, { include = "util", from = "..." }]
 
 [tool.poetry.dependencies]
 bcrypt = "^4.0.1"

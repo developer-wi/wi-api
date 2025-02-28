@@ -5,7 +5,8 @@ import concurrent.futures
 
 from auth.repo import RepoUser
 from auth.scheme import UserCreate
-from auth.crypt.util import get_password_hash, verify_password, create_token
+from util.crypt import get_password_hash, verify_password
+from util.token import create_token
 
 
 class UserService:
