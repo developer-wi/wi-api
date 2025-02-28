@@ -6,12 +6,13 @@ authors = [
     { name = "Wonik Kim", email = "developer.wi.76@gmail.com" }
 ]
 readme = "README.md"
-requires-python = ">=3.13"
+
 
 [tool.poetry]
-packages = [{ include = "auth", from = "..." }, { include = "util", from = "..." }]
+packages = [{ include = "auth", from = "src" },{ include = "util", from = "src" }]
 
 [tool.poetry.dependencies]
+python = "^3.10"
 bcrypt = "^4.0.1"
 passlib = { extras = ["bcrypt"], version = "^1.7.4" }
 pyjwt = "^2.10.1"

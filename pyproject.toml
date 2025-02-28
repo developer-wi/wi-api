@@ -6,7 +6,7 @@ authors = [
     { name = "Wonik Kim", email = "developer.wi.76@gmail.com" }
 ]
 readme = "README.md"
-requires-python = ">=3.13"
+
 
 [tool.poetry]
 package-mode = false
@@ -23,6 +23,7 @@ blog-v1 = { path = "api-v1/blog", develop = true }
 optional = true
 
 [tool.poetry.dependencies]
+python = "^3.10"
 black = "^25.1.0"
 
 
