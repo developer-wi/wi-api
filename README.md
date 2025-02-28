@@ -12,8 +12,8 @@
 ---
 
 ### Base Stack
-1. Python 3.13.2
-2. poetry 2.0.0
+1. Python 3.10.11
+2. poetry 1.8.4
 3. black 25.1.0
 -----
 
