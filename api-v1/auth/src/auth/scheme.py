@@ -1,23 +1,23 @@
 from pydantic import BaseModel
 
 
-class UserBase(BaseModel):
+class AuthBase(BaseModel):
     email: str
 
 
-class UserVerify(UserBase):
+class AuthVerify(AuthBase):
     password: str
 
 
-class UserCreate(UserVerify):
+class AuthCreate(AuthVerify):
     name: str
 
 
-class UserNewPassword(UserVerify):
+class AuthNewPassword(AuthVerify):
     new_password: str
 
 
-class User(UserBase):
+class Auth(AuthBase):
     id: int
 
     class Config:

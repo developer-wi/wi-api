@@ -9,11 +9,10 @@ readme = "README.md"
 
 
 [tool.poetry]
-packages = [{ include = "auth", from = "src" },{ include = "util", from = "src" }]
+packages = [{ include = "module", from = "src" },{ include = "auth", from = "src" },{ include = "util", from = "src" }]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-bcrypt = "^4.0.1"
 passlib = { extras = ["bcrypt"], version = "^1.7.4" }
 pyjwt = "^2.10.1"
 server = { path = "../../libs/server", develop = true }
