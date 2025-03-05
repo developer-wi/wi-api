@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 from auth.scheme import AuthVerify, AuthNewPassword, AuthCreate
-from database.app import get_db
+from databaselib.mysql.app import get_db
 from auth.service import AuthService
 
 

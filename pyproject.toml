@@ -13,12 +13,15 @@ package-mode = false
 
 [tool.poetry.group.auth-v1.dependencies]
 auth-v1 = { path = "api-v1/auth", develop = true }
-
+serverlib = { path = "libs/server-lib", develop = true }
+databaselib = { path = "libs/database-lib", develop = true }
 [tool.poetry.group.auth-v1]
 optional = true
 
 [tool.poetry.group.blog-v1.dependencies]
 blog-v1 = { path = "api-v1/blog", develop = true }
+serverlib = { path = "libs/server-lib", develop = true }
+databaselib = { path = "libs/database-lib", develop = true }
 [tool.poetry.group.blog-v1]
 optional = true
 

@@ -15,8 +15,6 @@ packages = [{ include = "module", from = "src" },{ include = "auth", from = "src
 python = "^3.10"
 passlib = { extras = ["bcrypt"], version = "^1.7.4" }
 pyjwt = "^2.10.1"
-server = { path = "../../libs/server", develop = true }
-database = { path = "../../libs/database", develop = true }
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

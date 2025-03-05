@@ -1,5 +1,6 @@
 import asyncio
 import jwt
+import datetime
 from concurrent.futures import ThreadPoolExecutor
 
 
@@ -10,4 +11,6 @@ async def create_token(user_id: int, thread_pool: ThreadPoolExecutor):
 
 
 def _create_token(user_id: int):
-    return jwt.encode({"user_id": user_id}, "gPdudtkgkd", algorithm="HS256")
+    now = datetime.datetime.now()
+    payload = {"user_id": user_id,"exp":now + datetime.timedelta(days=1)}
+    return jwt.encode(payload, "gPdudtkgkd", algorithm="HS256")
